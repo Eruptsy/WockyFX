@@ -145,7 +145,15 @@ pub fn (mut wx WFX) parse_wfx() {
 	
 } 
 
-pub fn (mut wx WFX) check_for_max_arg() {
+pub fn (mut wx WFX) check_for_max_arg() (int, string) {
+	// Info from file
+	mut max_arg := 0
+	mut max_arg_err := ""
+
+	// Check points for the loop
+	mut set_max := false
+	mut set_err_msg := false
+
 	for i, line in wx.file_lines {
 		if line.starts_with("set_max_arg") {
 			// validate function here
