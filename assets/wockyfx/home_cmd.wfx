@@ -1,0 +1,4 @@
+perm free
+
+clear();
+output_wrfx("ui");

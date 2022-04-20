@@ -1,0 +1,10 @@
+perm free
+
+clear();
+change_term_title("Skrillec NET");
+set_term_size(22,80);
+print_text("{Red}");
+slow_place_text(9,30,"Loading Wocky......");
+clear();
+print_text("{Default}");
+output_wrfx("ui");

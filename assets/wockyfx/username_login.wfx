@@ -1,0 +1,7 @@
+perm free
+
+output_wrfx("logo");
+place_text(12,19,"Username:  {Red}║                      {Default_BG}{Red}║{Default}");
+place_text(11,30,"{Red}╔══════════════════════╗{Default}");
+place_text(13,30,"{Red}╚══════════════════════╝{Default}");
+move_cursor(12,32);

@@ -1,0 +1,5 @@
+perm free
+
+set_max_arg(1);
+
+print_text("");
