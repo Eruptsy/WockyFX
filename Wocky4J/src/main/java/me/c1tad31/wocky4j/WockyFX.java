@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 public class WockyFX {
     private ServerSocket socket;
-    private boolean socketToggle;
+    private boolean socketToggle = false;
     private String file;
     private String fileData;
     private String[] fileLines;
@@ -27,11 +27,15 @@ public class WockyFX {
     private String[] cmdArgs;
     private String onlineUsers;
 
-    // trying to find a better way to do this
     private final Map<String, Integer> perms = new HashMap<>();
     private final Map<String, Integer> functions = new HashMap<>();
     private final Map<String, String> variables = new HashMap<>();
-    // private final String[] dataTypes = {"int", "for"};
+    private final String[] dataTypes = {"int", "for"};
+
+    public void enableSocket(ServerSocket s) {
+        socketToggle = true;
+        s = socket;
+    }
 
     public void handlePerms() {
         perms.put("free", 0);
@@ -138,13 +142,25 @@ public class WockyFX {
 
     }
 
-    public void checkforMaxArgs() {
+    public void checkForMaxArgs() {
         // Info from file
         int maxArgs = 0;
         String maxArgsError = "";
 
         boolean setMax = false;
         boolean setErrorMessage = false;
+
+        for (String line : fileLines) {
+            for (int i = 0; i <= maxArgs; i++) {
+                if (line.startsWith("set_max_arg")) {
+                    // validate function here
+                    if (fileLines[i+1].startsWith("set_arg_err_msg")) {
+                        // validate function here
+                    }
+                }
+            }
+        }
+
     }
 
     public void parsePerms(String line) {
