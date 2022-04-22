@@ -94,6 +94,7 @@ pub struct WFX {
 		cmd 			string
 		cmd_args		[]string
 
+		user_info		map[string]string
 		online_users	string
 }
 
@@ -111,6 +112,12 @@ pub enum FileRanks {
 	owner
 }
 
+pub enum Datatypes {
+	str
+	intger
+	fnc
+}
+
 pub fn (mut wx WFX) set_file(filepath string, file_type FileTypes) {
 	data := os.read_file(filepath) or {
 		println("[x] Error, Unable to locate file or read file!")
@@ -125,7 +132,7 @@ pub fn (mut wx WFX) set_file(filepath string, file_type FileTypes) {
 	wx.file_lines = data.split("\n")
 }
 
-pub fn (mut wx WFX) set_cmd_info(fcmd string, cmd string, args []string) {
+pub fn (mut wx WFX) set_buffer(fcmd string, cmd string, args []string) {
 	wx.fcmd = fcmd
 	wx.cmd = cmd
 	wx.cmd_args = args
@@ -135,18 +142,15 @@ pub fn (mut wx WFX) set_current_info() {
 
 }
 
-pub fn (mut wx WFX) parse_wfx() {
-	// Check for perm keyword and remove
-	if wx.file_type == FileTypes.wfx {
-		wx.parse_perm(wx.file_lines[0])
-	}
+// Adding file variables to the list of global variables!
+pub fn (mut wx WFX) add_variable(var_name string, var_type string, var_value string) {
 
-	// Check for max_arguments 
-	
-} 
+}
 
 pub fn (mut wx WFX) check_for_max_arg() (int, string) {
-	// Info from file
+	mut updated_code := []string // New file's code removing the 2 argument functions from content
+
+	// For loop check points
 	mut max_arg := 0
 	mut max_arg_err := ""
 
@@ -157,8 +161,81 @@ pub fn (mut wx WFX) check_for_max_arg() (int, string) {
 	for i, line in wx.file_lines {
 		if line.starts_with("set_max_arg") {
 			// validate function here
+			println(line)
 			if wx.file_lines[i+1].starts_with("set_arg_err_msg") {
 				// validate function here
+				println(line)
+			}
+		}
+	}
+	return 0, ""
+}
+
+pub fn (mut wx WFX) parse_wfx() {
+	// Check for perm keyword and remove
+	if wx.file_type == FileTypes.wfx {
+		wx.parse_perm(wx.file_lines[0])
+	}
+
+	// Check for cmd max_arguments 
+	exit_c, args := wx.check_for_max_arg()
+
+	for i, line in wx.file_lines {
+		if line.starts_with("var") {
+			mut var_name := ""
+			mut var_type := ""
+			mut var_value := ""
+			//              0      1  2   3
+			// Example: var[str] test = "lawl";
+			split_line := line.split(" ")
+			if line.contains(";") != true { 
+				println("[x] Error, Expected ';' semi-colon at the end of line...")
+				exit(0)
+			}
+			if line.replace("var", "").starts_with("[") {
+				if line.contains("]") {
+					var_type = split_line[0].replace("var[", "").replace("]", "")
+					println(var_type)
+					if var_type != "str" && var_type != "int" {
+						println("[x] Error, Invalid datatype. str, int or fn....")
+					}
+				} else { 
+					println("[x] Error, Expecting 'var[datatype]' datatype index for variable...")
+					exit(0)
+				}
+			}
+			var_name = split_line[1]
+			match var_type {
+				"int" {
+					var_value = split_line[3].replace(";", "")
+				}
+				"str" {
+					if wockyfx.char_count(line, "\"") != 2 {
+						println("[x] Error, Broken quoted string. Expecting a '\"'.")
+						exit(0)
+					}
+					var_value = wockyfx.get_str_between(line, "\"", "\"")
+				}
+				"fnc" {
+					// parse this for the value
+				} else {}
+			}
+			println("Current Arr Elements: ${var_name} | ${var_type} | ${var_value}")
+		} else if line.contains("fnc") {
+
+		}
+	}
+}
+
+pub fn (mut wx WFX) get_fnc_arg(line string) {
+	args := get_str_between(line, "(", ")").split(",")
+
+	raw_fn_args := []string
+	for i, arg in args {
+		if arg.contains("\"") {
+			c_count := wockyfx.char_count(line, "\"")
+			if c_count == 2 {
+				arg := 
 			}
 		}
 	}
@@ -185,4 +262,33 @@ pub fn (mut wx WFX) parse_perm(line string) {
 			} else {}
 		}
 	}
+}
+
+// returning exit_code, arg_count, []arguments
+pub fn (mut wx WFX) parse_fn(line string) (int, int, []string) {
+	args 			:= []string // Function arguments
+	args_count 		:= 0 // Function argument count
+
+	if line != "" {
+		if line.contains("(") {} else { return 0, args_count, args }
+
+		if line.ends_with(");") {
+
+		} else if line.ends_with("fn() => {")  {
+
+		} else { return 0, args_count, args }
+	}
+	return 1, args_count, args
+}
+
+pub fn (mut wx WFX) parse_callback_fn(file string, function string) (int, []string) {
+	return 0, [""]
+}
+
+pub fn (mut wx WFX) execute_fn() {
+
+}
+
+pub fn (mut wx WFX) execute_callback_fn() {
+
 }

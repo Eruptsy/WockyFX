@@ -1,5 +1,8 @@
 perm free
 
+
+var[str] my_var = "testing this variable";
+
 hide_cursor();
 clear();
 output_wrfx("ui");
