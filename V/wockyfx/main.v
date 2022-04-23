@@ -14,6 +14,9 @@ pub struct WFX {
 		file_lines		[]string
 		file_type		FileTypes
 		file_rank		FileRanks
+		// Current Function Info
+		fn_current_arg	[]string
+		fn_args_count	int
 
 		perms			map[string]int = {
 												'free': 0,
@@ -89,13 +92,15 @@ pub struct WFX {
 												'White_BG': ['\x1b[107m', 'str']
 												'Clear': ['\033[2J\033[1;1H', 'str']
 		}
-
+		// Buffer Info
 		fcmd			string
 		cmd 			string
 		cmd_args		[]string
 
 		user_info		map[string]string
 		online_users	string
+
+		wfx_u 			&wockyfx.WFX_Utils
 }
 
 pub enum FileTypes {
@@ -236,10 +241,15 @@ pub fn (mut wx WFX) parse_wfx() {
 
 			} else {
 				mut fn_found := false
-				for key, val in wx.functions {
-					if line.starts_with(key) {
+				for fn_n, fn_max_arg in wx.functions {
+					if line.starts_with(fn_n) {
 						
-						wx.get_fnc_arg(line, key)
+						wx.get_fnc_arg(line, fn_n)
+						// println("Lul: ${fn_max_arg}")
+
+						if fn_max_arg < wx.fn_args_count || fn_max_arg > wx.fn_args_count {
+							println("[x] Error, Supplied to much or missing function arguments")
+						}
 						
 						println("here")
 						fn_found = true
@@ -251,9 +261,18 @@ pub fn (mut wx WFX) parse_wfx() {
 	}
 }
 
+pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
+	for fn_n, fn_max_arg in wx.functions {
+		// match fn_n {
+			
+		// } else {}
+	}
+}
+
 
 // This function cannot stay like this. splitting between 'space' or ',' will corupt strings!
 pub fn (mut wx WFX) get_fnc_arg(line string, fn_n string) {
+	// parse function here
 	args := get_str_between(line, "(", ")").split(",")
 	args_count := args.len
 
@@ -265,19 +284,23 @@ pub fn (mut wx WFX) get_fnc_arg(line string, fn_n string) {
 		exit(0)
 	}
 
-	mut fn_args := []string
+	// mut fn_args := []string
 
-	raw_fn_args := []string
-	for arg in args {
-		if arg.contains("\"") {
-			c_count := wockyfx.char_count(line, "\"")
-			if c_count == 2 {
+	// raw_fn_args := []string
+	// for arg in args {
+	// 	if arg.contains("\"") {
+	// 		c_count := wockyfx.char_count(line, "\"")
+	// 		if c_count == 2 {
 				
-			} 
-		}
-		println("Here 2: ${args} | ${fn_args}")
-	}
+	// 		} 
+	// 	}
+	// }
+	
+	// println("Here 2: ${args} | ${fn_args}")
+	wx.fn_current_arg = args
+	wx.fn_args_count = args_count
 }
+
 
 pub fn (mut wx WFX) parse_perm(line string) {
 	if line.starts_with("perm") {
@@ -331,13 +354,11 @@ pub fn (mut wx WFX) execute_callback_fn() {
 
 }
 
-
-
 pub fn (mut wx WFX) replace_code(line string) {
 	mut new := ""
 	for key, val in wx.variables {
 		if line.contains("{${key}}") {
-			new = line.replace("{${key}}", wx.variables[key])	
+			new = line.replace("{${key}}", wx.variables[key][0])
 		}
 	}
 }

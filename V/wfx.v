@@ -3,7 +3,7 @@ import os
 import wockyfx
 
 fn main() {
-	mut wfx := wockyfx.WFX{}
+	mut wfx := wockyfx.WFX{wfx_u: &wockyfx.WFX_Utils}
 	for {
 		cmd_in := os.input(">>> ")
 		
