@@ -52,42 +52,42 @@ pub struct WFX {
 											 'set_arg_err_msg':		-1 // Do not detect the amount of argument for this function
 											}
 
-		variables 		map[string]string = {
-												'Default': '\x1b[39m'
-												'Black': '\x1b[30m'
-												'Red': '\x1b[31m'
-												'Green': '\x1b[32m'
-												'Yellow': '\x1b[33m'
-												'Blue': '\x1b[34m'
-												'Purple': '\x1b[35m'
-												'Cyan': '\x1b[36m'
-												'Light_Grey': '\x1b[37m'
-												'Dark_Grey': '\x1b[90m'
-												'Light_Red': '\x1b[91m'
-												'Light_Green': '\x1b[92m'
-												'Light_Yellow': '\x1b[93m'
-												'Light_Blue': '\x1b[94m'
-												'Light_Purple': '\x1b[95m'
-												'Light_Cyan': '\x1b[96m'
-												'White': '\x1b[97m'
-												'Default_BG': '\x1b[49m'
-												'Black_BG': '\x1b[40m'
-												'Red_BG': '\x1b[41m'
-												'Green_BG': '\x1b[42m'
-												'Yellow_BG': '\x1b[43m'
-												'Blue_BG': '\x1b[44m'
-												'Purple_BG': '\x1b[45m'
-												'Cyan_BG': '\x1b[46m'
-												'Light_Gray_BG': '\x1b[47m'
-												'Dark_Gray_BG': '\x1b[100m'
-												'Light_Red_BG': '\x1b[101m'
-												'Light_Green_BG': '\x1b[102m'
-												'Light_Yellow_BG': '\x1b[103m'
-												'Light_Blue_BG': '\x1b[104m'
-												'Light_Purple_BG': '\x1b[105m'
-												'Light_Cyan_BG': '\x1b[106m'
-												'White_BG': '\x1b[107m'
-												'Clear': '\033[2J\033[1;1H'
+		variables 		map[string][]string = {
+												'Default': ['\x1b[39m', 'str']
+												'Black': ['\x1b[30m', 'str']
+												'Red': ['\x1b[31m', 'str']
+												'Green': ['\x1b[32m', 'str']
+												'Yellow': ['\x1b[33m', 'str']
+												'Blue': ['\x1b[34m', 'str']
+												'Purple': ['\x1b[35m', 'str']
+												'Cyan': ['\x1b[36m', 'str']
+												'Light_Grey': ['\x1b[37m', 'str']
+												'Dark_Grey': ['\x1b[90m', 'str']
+												'Light_Red': ['\x1b[91m', 'str']
+												'Light_Green': ['\x1b[92m', 'str']
+												'Light_Yellow': ['\x1b[93m', 'str']
+												'Light_Blue': ['\x1b[94m', 'str']
+												'Light_Purple': ['\x1b[95m', 'str']
+												'Light_Cyan': ['\x1b[96m', 'str']
+												'White': ['\x1b[97m', 'str']
+												'Default_BG': ['\x1b[49m', 'str']
+												'Black_BG': ['\x1b[40m', 'str']
+												'Red_BG': ['\x1b[41m', 'str']
+												'Green_BG': ['\x1b[42m', 'str']
+												'Yellow_BG': ['\x1b[43m', 'str']
+												'Blue_BG': ['\x1b[44m', 'str']
+												'Purple_BG': ['\x1b[45m', 'str']
+												'Cyan_BG': ['\x1b[46m', 'str']
+												'Light_Gray_BG': ['\x1b[47m', 'str']
+												'Dark_Gray_BG': ['\x1b[100m', 'str']
+												'Light_Red_BG': ['\x1b[101m', 'str']
+												'Light_Green_BG': ['\x1b[102m', 'str']
+												'Light_Yellow_BG': ['\x1b[103m', 'str']
+												'Light_Blue_BG': ['\x1b[104m', 'str']
+												'Light_Purple_BG': ['\x1b[105m', 'str']
+												'Light_Cyan_BG': ['\x1b[106m', 'str']
+												'White_BG': ['\x1b[107m', 'str']
+												'Clear': ['\033[2J\033[1;1H', 'str']
 		}
 
 		fcmd			string
@@ -144,9 +144,18 @@ pub fn (mut wx WFX) set_current_info() {
 
 // Adding file variables to the list of global variables!
 pub fn (mut wx WFX) add_variable(var_name string, var_type string, var_value string) {
+	wx.variables[var_name] = [var_value, var_type]
+}
+
+pub fn (mut wx WFX) append_variable(var_name string, var_value string) {
 
 }
 
+pub fn (mut wx WFX) get_var_info(var_name string) (string, string, string) {
+	return "", "", ""
+}
+
+// Not Done!
 pub fn (mut wx WFX) check_for_max_arg() (int, string) {
 	mut updated_code := []string // New file's code removing the 2 argument functions from content
 
@@ -181,63 +190,92 @@ pub fn (mut wx WFX) parse_wfx() {
 	exit_c, args := wx.check_for_max_arg()
 
 	for i, line in wx.file_lines {
-		if line.starts_with("var") {
-			mut var_name := ""
-			mut var_type := ""
-			mut var_value := ""
-			//              0      1  2   3
-			// Example: var[str] test = "lawl";
-			split_line := line.split(" ")
-			if line.contains(";") != true { 
-				println("[x] Error, Expected ';' semi-colon at the end of line...")
-				exit(0)
-			}
-			if line.replace("var", "").starts_with("[") {
-				if line.contains("]") {
-					var_type = split_line[0].replace("var[", "").replace("]", "")
-					println(var_type)
-					if var_type != "str" && var_type != "int" {
-						println("[x] Error, Invalid datatype. str, int or fn....")
-					}
-				} else { 
-					println("[x] Error, Expecting 'var[datatype]' datatype index for variable...")
+		if line != "" {
+			if line.starts_with("var") {
+				mut var_name := ""
+				mut var_type := ""
+				mut var_value := ""
+				//              0      1  2   3
+				// Example: var[str] test = "lawl";
+				split_line := line.split(" ")
+				if line.contains(";") != true { 
+					println("[x] Error, Expected ';' semi-colon at the end of line...")
 					exit(0)
 				}
-			}
-			var_name = split_line[1]
-			match var_type {
-				"int" {
-					var_value = split_line[3].replace(";", "")
-				}
-				"str" {
-					if wockyfx.char_count(line, "\"") != 2 {
-						println("[x] Error, Broken quoted string. Expecting a '\"'.")
+				if line.replace("var", "").starts_with("[") {
+					if split_line[0].ends_with("]") {
+						var_type = split_line[0].replace("var[", "").replace("]", "")
+						println(var_type)
+						if var_type != "str" && var_type != "int" {
+							println("[x] Error, Invalid datatype. str, int or fn....")
+						}
+					} else { 
+						println("[x] Error, Expecting 'var[datatype]' datatype index for variable...")
 						exit(0)
 					}
-					var_value = wockyfx.get_str_between(line, "\"", "\"")
 				}
-				"fnc" {
-					// parse this for the value
-				} else {}
-			}
-			println("Current Arr Elements: ${var_name} | ${var_type} | ${var_value}")
-		} else if line.contains("fnc") {
+				var_name = split_line[1]
+				match var_type {
+					"int" {
+						var_value = split_line[3].replace(";", "")
+					}
+					"str" {
+						if wockyfx.char_count(line, "\"") != 2 {
+							println("[x] Error, Broken quoted string. Expecting a '\"'.")
+							exit(0)
+						}
+						var_value = wockyfx.get_str_between(line, "\"", "\"")
+					}
+					"fnc" {
+						// parse this for the value
+					} else {}
+				}
+				wx.add_variable(var_name, var_type, var_value)
+				println(wx.variables[var_name])
+			} else if line.contains("fnc") {
 
+			} else {
+				mut fn_found := false
+				for key, val in wx.functions {
+					if line.starts_with(key) {
+						
+						wx.get_fnc_arg(line, key)
+						
+						println("here")
+						fn_found = true
+					}
+				}
+				fn_found = false
+			}
 		}
 	}
 }
 
-pub fn (mut wx WFX) get_fnc_arg(line string) {
+
+// This function cannot stay like this. splitting between 'space' or ',' will corupt strings!
+pub fn (mut wx WFX) get_fnc_arg(line string, fn_n string) {
 	args := get_str_between(line, "(", ")").split(",")
+	args_count := args.len
+
+	if args_count < wx.functions[fn_n] {
+		println("[x] Error, Missing function arguments")
+		exit(0)
+	} else if args_count > wx.functions[fn_n] {
+		println("[x] Error, Supplied to much function arguments")
+		exit(0)
+	}
+
+	mut fn_args := []string
 
 	raw_fn_args := []string
-	for i, arg in args {
+	for arg in args {
 		if arg.contains("\"") {
 			c_count := wockyfx.char_count(line, "\"")
 			if c_count == 2 {
-				arg := 
-			}
+				
+			} 
 		}
+		println("Here 2: ${args} | ${fn_args}")
 	}
 }
 
@@ -291,4 +329,15 @@ pub fn (mut wx WFX) execute_fn() {
 
 pub fn (mut wx WFX) execute_callback_fn() {
 
+}
+
+
+
+pub fn (mut wx WFX) replace_code(line string) {
+	mut new := ""
+	for key, val in wx.variables {
+		if line.contains("{${key}}") {
+			new = line.replace("{${key}}", wx.variables[key])	
+		}
+	}
 }
