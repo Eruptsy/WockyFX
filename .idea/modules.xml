@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Wocky4J/Wocky4J.iml" filepath="$PROJECT_DIR$/Wocky4J/Wocky4J.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/WockyFX.iml" filepath="$PROJECT_DIR$/.idea/WockyFX.iml" />
+    </modules>
+  </component>
+</project>
