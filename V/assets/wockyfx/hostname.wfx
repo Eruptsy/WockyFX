@@ -1,5 +1,5 @@
 perm free
 
-place_text(21,3,"[Wocky@NET]# $ ");
-place_text(21,18,"                               ");
-move_cursor(21,18);
+place_text(29,3,"[Wocky@NET]# $ ");
+place_text(29,18,"                               ");
+move_cursor(29,18);

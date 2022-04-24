@@ -43,3 +43,17 @@ pub fn (mut wxu WFX_Utils) wfx_move_cursor(r string, c string) {
 pub fn (mut wxu WFX_Utils) wfx_place_text(r string, c string, t string) {
 	print("\033[${r};${c}f${t}")
 }
+
+pub fn wfx_output_wrfx(file string) {
+	mut file_data := os.read_lines(file) or { [''] }
+
+	for i, line in file_data {
+		mut fix := wockyfx.replace_code(line) // replacing_veriables
+		if i == file_data.len-1 {
+			print(fix.trim_space())
+		} else {
+			fix += "\r\n"
+			print(fix)
+		}
+	}
+}

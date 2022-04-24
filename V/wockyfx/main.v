@@ -29,29 +29,29 @@ pub struct WFX {
 											// If function arguments are these then its a function called
 		datatypes		[]string 		  = ['int', 'string']
 
-						// FUNCTION_NAME, FUNCTION_MAX_ARG		// ANSI Functions
+						// FUNCTION_NAME, FUNCTION_MAX_ARG(1==0)		// ANSI Functions
 		functions		map[string]int = {'sleep':				1,
 											 'clear':				1,
-											 'hide_cursor': 		0,
-											 'show_cursor': 		0,
-											 'print_text':			1,
-											 'place_text': 			3,
-											 'slow_place_text': 	3,
-											 'list_text': 			3,
-											 'slow_list_text':		3,
-											 'set_term_size': 		1,
-											 'change_term_title':	1,
+											 'hide_cursor': 		1,
+											 'show_cursor': 		1,
+											 'print_text':			2,
+											 'place_text': 			4,
+											 'slow_place_text': 	4,
+											 'list_text': 			4,
+											 'slow_list_text':		4,
+											 'set_term_size': 		2,
+											 'change_term_title':	2,
 											 'move_cursor':			2,
-											 'include_wfx':			1,
-											 'output_wrfx':			1,
+											 'include_whfx'			2,
+											 'output_wrfx':			2,
 											 // Returning Functions
-											 'get_args': 			0,
+											 'get_args': 			1,
 											 // Special Functions
-											 'geo_ip':				1,
-											 'port_scan':			1,
-											 'send_attack':			3,
+											 'geo_ip':				2,
+											 'port_scan':			2,
+											 'send_attack':			4,
 											 // Error Handlers
-											 'set_max_arg':			1,
+											 'set_max_arg':			2,
 											 'set_arg_err_msg':		-1 // Do not detect the amount of argument for this function
 											}
 
@@ -282,6 +282,11 @@ pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
 			} else {
 				wx.wfx_u.wfx_clear()
 			}
+		}
+		"output_wrfx" {
+			if wx.socket_toggle == true {
+				// wx.wfx_u.wfx
+			}
 		} else {}
 	}
 }
@@ -370,7 +375,7 @@ pub fn (mut wx WFX) execute_callback_fn() {
 
 }
 
-pub fn (mut wx WFX) replace_code(line string) {
+pub fn replace_code(line string) {
 	mut new := ""
 	for key, val in wx.variables {
 		if line.contains("{${key}}") {
