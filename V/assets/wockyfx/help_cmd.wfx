@@ -1,7 +1,5 @@
 perm free
-
-
 var[str] my_var = "testing this variable";
-
+clear();
 output_wrfx("ui");
 list_text(10,6,"help | {my_var}list of commands!{NEWLINE}methods | list of methods!{NEWLINE}attack | flood an ip{NEWLINE}geo | ip look up{NEWLINE}pscan | port scan an ip");

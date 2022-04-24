@@ -143,6 +143,15 @@ pub fn (mut wx WFX) set_buffer(fcmd string, cmd string, args []string) {
 	wx.cmd_args = args
 }
 
+pub fn (mut wx WFX) enable_socket_mode(mut socket net.TcpConn) {
+	wx.socket_toggle = true
+	wx.socket = socket
+}
+
+pub fn (mut wx WFX) disable_socket_mode() {
+	wx.socket_toggle = false
+}
+
 pub fn (mut wx WFX) set_current_info() {
 
 }
@@ -247,9 +256,10 @@ pub fn (mut wx WFX) parse_wfx() {
 						wx.get_fnc_arg(line, fn_n)
 						// println("Lul: ${fn_max_arg}")
 
-						if fn_max_arg < wx.fn_args_count || fn_max_arg > wx.fn_args_count {
-							println("[x] Error, Supplied to much or missing function arguments")
-						}
+						wx.handle_fn(fn_n, wx.fn_current_arg)
+						// if fn_max_arg < wx.fn_args_count || fn_max_arg > wx.fn_args_count {
+						// 	println("[x] Error, Supplied to much or missing function arguments")
+						// }
 						
 						println("here")
 						fn_found = true
@@ -262,10 +272,17 @@ pub fn (mut wx WFX) parse_wfx() {
 }
 
 pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
-	for fn_n, fn_max_arg in wx.functions {
-		// match fn_n {
-			
-		// } else {}
+	match fn_name {
+		"sleep" {
+			wx.wfx_u.wfx_sleep(fn_args[0].int())
+		}
+		"clear" {
+			if wx.socket_toggle == true {
+				wx.wfx_u.wfx_clear_socket(mut wx.socket)
+			} else {
+				wx.wfx_u.wfx_clear()
+			}
+		} else {}
 	}
 }
 
@@ -275,7 +292,6 @@ pub fn (mut wx WFX) get_fnc_arg(line string, fn_n string) {
 	// parse function here
 	args := get_str_between(line, "(", ")").split(",")
 	args_count := args.len
-
 	if args_count < wx.functions[fn_n] {
 		println("[x] Error, Missing function arguments")
 		exit(0)
