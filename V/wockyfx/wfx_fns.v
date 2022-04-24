@@ -16,5 +16,3 @@ pub fn wfx_sleep(c int) {
 pub fn wfx_clear() {
 	print("\033[2J\033[1;1H")
 }
-
-pub fn wfx_place_text()
