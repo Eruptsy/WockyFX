@@ -1,0 +1,3 @@
+fnc clear() {
+    place_text(17,5,"testing this from a whfx file");
+}
