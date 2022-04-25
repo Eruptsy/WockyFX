@@ -14,9 +14,15 @@ pub struct WFX {
 		file_lines		[]string
 		file_type		FileTypes
 		file_rank		FileRanks
+
 		// Current Function Info
 		fn_current_arg	[]string
 		fn_args_count	int
+
+		// WHFX SHIT
+		whfx_file		string
+		whfx_fnc		string
+		whfx_fnc_data	[]string
 
 		perms			map[string]int = {
 												'free': 0,
@@ -31,27 +37,27 @@ pub struct WFX {
 
 						// FUNCTION_NAME, FUNCTION_MAX_ARG(1==0)		// ANSI Functions
 		functions		map[string]int = {'sleep':				1,
-											 'clear':				1,
-											 'hide_cursor': 		1,
-											 'show_cursor': 		1,
-											 'print_text':			2,
-											 'place_text': 			4,
-											 'slow_place_text': 	4,
-											 'list_text': 			4,
-											 'slow_list_text':		4,
-											 'set_term_size': 		2,
-											 'change_term_title':	2,
-											 'move_cursor':			2,
-											 'include_whfx'			2,
-											 'output_wrfx':			2,
+											 'clear':				0,
+											 'hide_cursor': 		0,
+											 'show_cursor': 		0,
+											 'print_text':			1,
+											 'place_text': 			3,
+											 'slow_place_text': 	5,
+											 'list_text': 			3,
+											 'slow_list_text':		3,
+											 'set_term_size': 		1,
+											 'change_term_title':	1,
+											 'move_cursor':			1,
+											 'include_whfx':		1,
+											 'output_wrfx':			1,
 											 // Returning Functions
-											 'get_args': 			1,
+											 'get_args': 			0,
 											 // Special Functions
-											 'geo_ip':				2,
-											 'port_scan':			2,
-											 'send_attack':			4,
+											 'geo_ip':				1,
+											 'port_scan':			1,
+											 'send_attack':			3,
 											 // Error Handlers
-											 'set_max_arg':			2,
+											 'set_max_arg':			1,
 											 'set_arg_err_msg':		-1 // Do not detect the amount of argument for this function
 											}
 
@@ -137,6 +143,10 @@ pub fn (mut wx WFX) set_file(filepath string, file_type FileTypes) {
 	wx.file_lines = data.split("\n")
 }
 
+pub fn (mut wx WFX) set_new_wfx_code(code []string) {
+	wx.file_lines = code
+}
+
 pub fn (mut wx WFX) set_buffer(fcmd string, cmd string, args []string) {
 	wx.fcmd = fcmd
 	wx.cmd = cmd
@@ -204,7 +214,7 @@ pub fn (mut wx WFX) parse_wfx() {
 	exit_c, args := wx.check_for_max_arg()
 
 	for i, line in wx.file_lines {
-		if line != "" {
+		if line != "" && line.starts_with("//") == false {
 			if line.starts_with("var") {
 				mut var_name := ""
 				mut var_type := ""
@@ -245,23 +255,16 @@ pub fn (mut wx WFX) parse_wfx() {
 					} else {}
 				}
 				wx.add_variable(var_name, var_type, var_value)
-				println(wx.variables[var_name])
-			} else if line.contains("fnc") {
-
+			} else if line.starts_with("include_whfx") {
+				wx.parse_whfx(i)
 			} else {
 				mut fn_found := false
 				for fn_n, fn_max_arg in wx.functions {
 					if line.starts_with(fn_n) {
 						
-						wx.get_fnc_arg(line, fn_n)
-						// println("Lul: ${fn_max_arg}")
-
+						lul := wx.get_fnc_arg(line, fn_n)
 						wx.handle_fn(fn_n, wx.fn_current_arg)
-						// if fn_max_arg < wx.fn_args_count || fn_max_arg > wx.fn_args_count {
-						// 	println("[x] Error, Supplied to much or missing function arguments")
-						// }
-						
-						println("here")
+					
 						fn_found = true
 					}
 				}
@@ -286,40 +289,126 @@ pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
 		"output_wrfx" {
 			if wx.socket_toggle == true {
 				// wx.wfx_u.wfx
+			} else {
+				wx.wfx_u.wfx_output_wrfx(fn_args[0].replace("\"", ""))
+			}
+		}
+		"hide_cursor" {
+			if wx.socket_toggle == true {
+
+			} else {
+				wx.wfx_u.wfx_hide_cursor()
+			}
+		} 
+		"show_cursor" {
+			if wx.socket_toggle == true {
+
+			} else {
+				wx.wfx_u.wfx_show_cursor()
+			}
+		} 
+		"print_text" {
+			if wx.socket_toggle == true {
+				wx.socket.write_string(wx.replace_var_code(fn_args[0].replace("\"", ""))) or { 0 }
+			} else {
+				print(wx.replace_var_code(fn_args[0].replace("\"", "")))
+			}
+		}
+		"place_text" {
+			if wx.socket_toggle == true {
+				wx.wfx_u.wfx_place_text_socket(fn_args[0], fn_args[1], fn_args[2].replace("\"", ""), mut wx.socket)
+			} else {
+				wx.wfx_u.wfx_place_text(fn_args[0], fn_args[1], fn_args[2].replace("\"", ""))
+			}
+		}
+		"slow_place_text" {
+			if wx.socket_toggle == true {
+				
+			} else {
+				wx.wfx_u.wfx_slow_place_text(fn_args[0], fn_args[1], fn_args[2], fn_args[3], fn_args[4].replace("\"", ""))
+			}
+		}
+		"list_text" {
+			if wx.socket_toggle == true {
+
+			} else {
+				
 			}
 		} else {}
 	}
 }
 
+pub fn (mut wx WFX) parse_whfx(line_number int) {
+	line := wx.file_lines[line_number]
+	if line.contains("(") {} else { 
+		println("[x] Error, Expecting '(' after 'include_whfx' on line ${line_number}")
+		return
+	}
+	if line.contains(")") {} else {
+		println("[x] Error, Missing ')' after include_whfx first function argument")
+		return
+	} 
+	if line.contains(").") {} else {
+		println("[x] Error, Missing '.' after include_whfx function call")
+		return
+	} 
+	if line.contains("();") {} else {
+		println("[x] Error, Missing (); at the end of the second function chain call")
+		return
+	}
+
+	// get external function name
+	whfx_filepath := get_str_between(line, "\"", "\"")
+	ext_fn_name := get_str_between_alt(line, 2, ".", "(")
+
+	mut whfx_filedata := os.read_lines(whfx_filepath) or { 
+		println("[x] Error, Unable to read whfx file!")
+		return
+	}
+
+	mut new_wfx_code := []string
+	for i, whfx_line in whfx_filedata {
+		if whfx_line.starts_with(ext_fn_name) {
+			for ln_n in i+1..whfx_filedata.len {
+				c_ln := whfx_filedata[ln_n]
+				if c_ln == "}" || c_ln == "} str;" { break }
+				new_wfx_code << c_ln.trim_space()
+			}
+		}
+	}
+
+	// run wfx parser now 
+	old_file := wx.file
+	old_code := wx.file_lines
+	wx.set_new_wfx_code(new_wfx_code)
+	wx.parse_wfx()
+	wx.file = old_file
+	wx.file_lines = old_code
+}
+
 
 // This function cannot stay like this. splitting between 'space' or ',' will corupt strings!
-pub fn (mut wx WFX) get_fnc_arg(line string, fn_n string) {
+pub fn (mut wx WFX) get_fnc_arg(line string, fn_n string) int {
 	// parse function here
+	if line.ends_with("();") { return 1 }
 	args := get_str_between(line, "(", ")").split(",")
-	args_count := args.len
+	mut args_count := args.len
+	
+	if args_count == 1 && args[0] == "" { 
+		args_count--
+	}
+
 	if args_count < wx.functions[fn_n] {
 		println("[x] Error, Missing function arguments")
 		exit(0)
 	} else if args_count > wx.functions[fn_n] {
-		println("[x] Error, Supplied to much function arguments")
+		println("Here: [x] Error, Supplied to much function arguments")
 		exit(0)
 	}
 
-	// mut fn_args := []string
-
-	// raw_fn_args := []string
-	// for arg in args {
-	// 	if arg.contains("\"") {
-	// 		c_count := wockyfx.char_count(line, "\"")
-	// 		if c_count == 2 {
-				
-	// 		} 
-	// 	}
-	// }
-	
-	// println("Here 2: ${args} | ${fn_args}")
 	wx.fn_current_arg = args
 	wx.fn_args_count = args_count
+	return 0
 }
 
 
@@ -375,11 +464,53 @@ pub fn (mut wx WFX) execute_callback_fn() {
 
 }
 
-pub fn replace_code(line string) {
-	mut new := ""
-	for key, val in wx.variables {
-		if line.contains("{${key}}") {
-			new = line.replace("{${key}}", wx.variables[key][0])
+pub fn (mut wx WFX) replace_var_code(line string) string {
+	mut t := replace_code(line)
+	for key, val_arr in wx.variables {
+		if t.contains("{${key}}") {
+			t = t.replace("{${key}}", val_arr[0])
 		}
 	}
+	return t
+}
+
+pub fn replace_code(line string) string {
+	mut wfxu := wockyfx.WFX_Utils{}
+	mut wfx := WFX{wfx_u: &wfxu}
+
+	mut fix := line.replace("{Default}", 			wfx.variables['Default'][0])
+	fix = fix.replace(		"{Black}", 				wfx.variables['Black'][0])
+	fix = fix.replace(		"{Red}", 				wfx.variables['Red'][0])
+	fix = fix.replace(		"{Green}", 				wfx.variables['Green'][0])
+	fix = fix.replace(		"{Yellow}", 			wfx.variables['Yellow'][0])
+	fix = fix.replace(		"{Blue}", 				wfx.variables['Blue'][0])
+	fix = fix.replace(		"{Purple}", 			wfx.variables['Purple'][0])
+	fix = fix.replace(		"{Cyan}", 				wfx.variables['Cyan'][0])
+	fix = fix.replace(		"{Light_Grey}", 		wfx.variables['Light_Grey'][0])
+	fix = fix.replace(		"{Dark_Grey}", 			wfx.variables['Dark_Grey'][0])
+	fix = fix.replace(		"{Light_Red}", 			wfx.variables['Light_Red'][0])
+	fix = fix.replace(		"{Light_Green}", 		wfx.variables['Light_Green'][0])
+	fix = fix.replace(		"{Light_Yellow}", 		wfx.variables['Light_Yellow'][0])
+	fix = fix.replace(		"{Light_Blue}", 		wfx.variables['Light_Blue'][0])
+	fix = fix.replace(		"{Light_Purple}", 		wfx.variables['Light_Purple'][0])
+	fix = fix.replace(		"{White}", 				wfx.variables['White'][0])
+	fix = fix.replace(		"{Default_BG}", 		wfx.variables['Default_BG'][0])
+	fix = fix.replace(		"{Black_BG}", 			wfx.variables['Black_BG'][0])
+	fix = fix.replace(		"{Red_BG}", 			wfx.variables['Red_BG'][0])
+	fix = fix.replace(		"{Green_BG}", 			wfx.variables['Green_BG'][0])
+	fix = fix.replace(		"{Yellow_BG}", 			wfx.variables['Yellow_BG'][0])
+	fix = fix.replace(		"{Purple_BG}", 			wfx.variables['Purple_BG'][0])
+	fix = fix.replace(		"{Cyan_BG}", 			wfx.variables['Cyan_BG'][0])
+	fix = fix.replace(		"{Light_Gray_BG}", 		wfx.variables['Light_Gray_BG'][0])
+	fix = fix.replace(		"{Dark_Gray_BG}", 		wfx.variables['Dark_Gray_BG'][0])
+	fix = fix.replace(		"{Light_Red_BG}", 		wfx.variables['Light_Red_BG'][0])
+	fix = fix.replace(		"{Light_Green_BG}", 	wfx.variables['Light_Green_BG'][0])
+	fix = fix.replace(		"{Light_Yellow_BG}", 	wfx.variables['Light_Yellow_BG'][0])
+	fix = fix.replace(		"{Light_Blue_BG}", 		wfx.variables['Light_Blue_BG'][0])
+	fix = fix.replace(		"{Light_Purple_BG}", 	wfx.variables['Light_Purple_BG'][0])
+	fix = fix.replace(		"{Light_Cyan_BG}", 		wfx.variables['Light_Cyan_BG'][0])
+	fix = fix.replace(		"{White_BG}", 			wfx.variables['White_BG'][0])
+	fix = fix.replace(		"{NEWLINE}", 			"\r\n")
+	fix = fix.replace(		"{BOL}", 				"\r")
+	return fix
 }

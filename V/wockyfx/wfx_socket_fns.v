@@ -26,5 +26,9 @@ pub fn (mut wxu WFX_Utils) wfx_change_term_title_socket(t string, mut socket net
 }
 
 pub fn (mut wxu WFX_Utils) wfx_move_cursor_socket(r string, c string, mut socket net.TcpConn) {
-	s.write_string("\033[${r};${c}f") or { 0 }
+	socket.write_string("\033[${r};${c}f") or { 0 }
+}
+
+pub fn (mut wxu WFX_Utils) wfx_place_text_socket(r string, c string, t string, mut socket net.TcpConn) {
+	socket.write_string("\033[${r};${c}f${t}") or { 0 }
 }

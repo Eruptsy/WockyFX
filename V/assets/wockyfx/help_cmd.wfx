@@ -1,5 +1,13 @@
 perm free
 var[str] my_var = "testing this variable";
+hide_cursor();
 clear();
-output_wrfx("ui");
-list_text(10,6,"help | {my_var}list of commands!{NEWLINE}methods | list of methods!{NEWLINE}attack | flood an ip{NEWLINE}geo | ip look up{NEWLINE}pscan | port scan an ip");
+output_wrfx("assets/wockyfx/wrfx/ui.wrfx");
+sleep(2);
+slow_place_text(15,6,250,millisecond,"test....");
+print_text("{my_var}");
+include_whfx("assets/wockyfx/whfx/clear_box.whfx").clear();
+place_text(20,6,"testing back to wfx file data again");
+sleep(2);
+show_cursor();
+sleep(10);

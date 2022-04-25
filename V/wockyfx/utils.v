@@ -27,3 +27,20 @@ pub fn get_str_between(t string, start string, end string) string {
 	return new_str //, t.replace(new_str, "")
 }
 
+pub fn get_str_between_alt(t string, pos int, start string, end string) string {
+	mut new_str := ""
+	mut ignore := true // ignore current text
+	mut n := 0
+	for i, letter in t {
+		c := letter.ascii_str()
+		if c == start && ignore == true && n == pos {
+			n++
+			ignore = false
+		} else if c == end && ignore == false {
+			return new_str
+		} else if ignore == false {
+			new_str += c
+		}
+	}
+	return new_str //, t.replace(new_str, "")
+}
