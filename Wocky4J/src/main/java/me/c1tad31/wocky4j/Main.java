@@ -1,5 +1,7 @@
 package me.c1tad31.wocky4j;
 
+import me.c1tad31.wocky4j.controllers.WfxFns;
+import me.c1tad31.wocky4j.controllers.WockyFX;
 import me.c1tad31.wocky4j.enums.FileTypes;
 
 import java.io.IOException;
@@ -12,14 +14,15 @@ public class Main {
         // System.out.println("Hello World!");
 
         WockyFX wockyFX = new WockyFX();
+        WfxFns wfxFns = new WfxFns();
 
-        while (true) {
-            Scanner scanner = new Scanner(System.in);
-            System.out.print(">>> ");
-            String cmdIn = scanner.nextLine();
+        wfxFns.wfxClear();
 
-            wockyFX.setFile(cmdIn, FileTypes.WFX);
-            wockyFX.parseWfx();
-        }
+        Scanner scanner = new Scanner(System.in);
+        System.out.print(">>> ");
+        String cmdIn = scanner.nextLine();
+
+        wockyFX.setFile(cmdIn, FileTypes.WFX);
+        wockyFX.parseWfx();
     }
 }
