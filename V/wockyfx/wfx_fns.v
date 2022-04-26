@@ -59,6 +59,16 @@ pub fn (mut wxu WFX_Utils) wfx_slow_place_text(r string, c string, tme string, m
 	}
 }
 
+
+pub fn wfx_list_text(r string, c string, gg string) {
+	mut start_c := r.int()
+	mut t := wockyfx.replace_code(gg)
+	for i, letter in t.split("\n") {
+		print("\033[${start_c};${c}f${letter}")
+		start_c++
+	}
+}
+
 pub fn (mut wxu WFX_Utils) wfx_output_wrfx(file string) {
 	mut file_data := os.read_lines(file) or { 
 		println("error reading file") 

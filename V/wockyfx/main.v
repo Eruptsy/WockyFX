@@ -332,7 +332,7 @@ pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
 			if wx.socket_toggle == true {
 
 			} else {
-				
+				wfx_list_text(fn_args[0], fn_args[1], fn_args[3].replace("\"", ""))
 			}
 		} else {}
 	}
