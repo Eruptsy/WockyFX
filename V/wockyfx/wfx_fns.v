@@ -60,7 +60,7 @@ pub fn (mut wxu WFX_Utils) wfx_slow_place_text(r string, c string, tme string, m
 }
 
 
-pub fn wfx_list_text(r string, c string, gg string) {
+pub fn (mut wxu WFX_Utils) wfx_list_text(r string, c string, gg string) {
 	mut start_c := r.int()
 	mut t := wockyfx.replace_code(gg)
 	for i, letter in t.split("\n") {

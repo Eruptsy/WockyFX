@@ -129,6 +129,12 @@ pub enum Datatypes {
 	fnc
 }
 
+pub fn start_session() WFX {
+	mut wxu := wockyfx.WFX_Utils{}
+	mut wfx := WFX{wfx_u: &wxu}
+	return wfx
+}
+
 pub fn (mut wx WFX) set_file(filepath string, file_type FileTypes) {
 	data := os.read_file(filepath) or {
 		println("[x] Error, Unable to locate file or read file!")
@@ -290,7 +296,7 @@ pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
 			if wx.socket_toggle == true {
 				// wx.wfx_u.wfx
 			} else {
-				wx.wfx_u.wfx_output_wrfx(fn_args[0].replace("\"", ""))
+				wx.wfx_u.wfx_output_wrfx(wx.replace_var_code(fn_args[0].replace("\"", "")))
 			}
 		}
 		"hide_cursor" {
@@ -316,23 +322,23 @@ pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
 		}
 		"place_text" {
 			if wx.socket_toggle == true {
-				wx.wfx_u.wfx_place_text_socket(fn_args[0], fn_args[1], fn_args[2].replace("\"", ""), mut wx.socket)
+				wx.wfx_u.wfx_place_text_socket(fn_args[0], fn_args[1], wfx.replace_var_code(fn_args[2].replace("\"", ""), mut wx.socket))
 			} else {
-				wx.wfx_u.wfx_place_text(fn_args[0], fn_args[1], fn_args[2].replace("\"", ""))
+				wx.wfx_u.wfx_place_text(fn_args[0], fn_args[1], wfx.replace_var_code(fn_args[2].replace("\"", "")))
 			}
 		}
 		"slow_place_text" {
 			if wx.socket_toggle == true {
 				
 			} else {
-				wx.wfx_u.wfx_slow_place_text(fn_args[0], fn_args[1], fn_args[2], fn_args[3], fn_args[4].replace("\"", ""))
+				wx.wfx_u.wfx_slow_place_text(fn_args[0], fn_args[1], fn_args[2], fn_args[3], wfx.replace_var_code(fn_args[4].replace("\"", "")))
 			}
 		}
 		"list_text" {
 			if wx.socket_toggle == true {
 
 			} else {
-				wfx_list_text(fn_args[0], fn_args[1], fn_args[3].replace("\"", ""))
+				wx.wfx_u.wfx_list_text(fn_args[0], fn_args[1], wfx.replace_var_code(fn_args[2].replace("\"", "")))
 			}
 		} else {}
 	}
@@ -371,11 +377,22 @@ pub fn (mut wx WFX) parse_whfx(line_number int) {
 		if whfx_line.starts_with(ext_fn_name) {
 			for ln_n in i+1..whfx_filedata.len {
 				c_ln := whfx_filedata[ln_n]
-				if c_ln == "}" || c_ln == "} str;" { break }
+				if c_ln == "}" { break }
 				new_wfx_code << c_ln.trim_space()
+			}
+			if new_wfx_code.len > 2 {
+				old_file := wx.file
+				old_code := wx.file_lines
+				wx.set_new_wfx_code(new_wfx_code)
+				wx.parse_wfx()
+				wx.file = old_file
+				wx.file_lines = old_code
+				return 
 			}
 		}
 	}
+
+	println(new_wfx_code)
 
 	// run wfx parser now 
 	old_file := wx.file
@@ -470,6 +487,18 @@ pub fn (mut wx WFX) replace_var_code(line string) string {
 		if t.contains("{${key}}") {
 			t = t.replace("{${key}}", val_arr[0])
 		}
+	}
+	t = t.replace("{ONLINEUSERS}", wx.online_users)
+	if wx.user_info != 0 {
+		t = t.replace("{USERID}", wx.user_info['USERID'])
+		t = t.replace("{USERNAME}", wx.user_info['username'])
+		t = t.replace("{USERIP}", wx.user_info['ip'])
+		t = t.replace("{PLAN}", wx.user_info['plan'])
+		t = t.replace("{MAXTIME}", wx.user_info['maxtime'])
+		t = t.replace("{CONN}", wx.user_info['conn'])
+		t = t.replace("{ONGOING}", wx.user_info['ongoing'])
+		t = t.replace("{ADMIN}", wx.user_info['admin'])
+		t = t.replace("{EXPIRY}", wx.user_info['expiry'])
 	}
 	return t
 }
