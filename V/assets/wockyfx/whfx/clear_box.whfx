@@ -1,3 +1,8 @@
 fnc clear() {
-    place_text(17,5,"testing this from a whfx file");
+    list_text(11,2,"                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}                                                         {NEWLINE}");
+    place_text(27,4,"Screen cleared....");
+}
+
+fnc skid_bag() {
+
 }

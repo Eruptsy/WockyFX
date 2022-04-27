@@ -3,8 +3,7 @@ import os
 import wockyfx
 
 fn main() {
-	mut wfxu := wockyfx.WFX_Utils{}
-	mut wfx := wockyfx.WFX{wfx_u: &wfxu}
+	mut wfx := wockyfx.start_session()
 
 	// wfx.enable_socket_mode(mut socket) // Enable socket mode
 	// wfx.disable_socket_mode() // disable socket mode
