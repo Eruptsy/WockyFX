@@ -18,11 +18,13 @@ public class Main {
 
         wfxFns.wfxClear();
 
-        Scanner scanner = new Scanner(System.in);
-        System.out.print(">>> ");
-        String cmdIn = scanner.nextLine();
+        // Scanner scanner = new Scanner(System.in);
+        // System.out.print(">>> ");
+        // String cmdIn = scanner.nextLine();
 
-        wockyFX.setFile(cmdIn, FileTypes.WFX);
-        wockyFX.parseWfx();
+        // wockyFX.setFile(cmdIn, FileTypes.WFX);
+        // wockyFX.parseWfx();
+
+        wockyFX.parsePerms("owner");
     }
 }
