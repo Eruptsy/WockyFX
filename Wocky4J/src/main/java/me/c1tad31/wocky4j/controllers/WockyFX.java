@@ -173,9 +173,14 @@ public class WockyFX {
 
     }
 
-    public void parsePerms(String line) {
-        if (line.startsWith("perm")) {
-            String rank = line.split(" ")[1];
+    /**
+     * @author Citadel
+     * @param line tells the library what permission to set the file to
+     */
+
+    public void parsePerms(String permission) {
+        if (permission.startsWith("perm")) {
+            String rank = permission.split(" ")[1];
             switch (rank) {
                 case "free":
                     fileRanks = FileRanks.FREE;
@@ -192,14 +197,20 @@ public class WockyFX {
                     System.exit(0);
             }
         }
+        System.out.println(String.format("your file is set to \"%s\" permission", fileRanks));
     }
 
-    public int parseFn(String line) {
+    /**
+     * @author Citadel
+     * @param set the pers
+     */
+
+    public int parseFn(String function) {
         String[] args;
         int argsCount = 0;
 
-        if (!line.equals("")) {
-            if (line.contains("(")) {
+        if (!function.equals("")) {
+            if (function.contains("(")) {
 
             } else {
                 return 0;
