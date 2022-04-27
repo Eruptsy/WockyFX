@@ -15,6 +15,9 @@ pub struct WFX {
 		file_type		FileTypes
 		file_rank		FileRanks
 
+		// Current file info
+		file_current_ln	int
+
 		// Current Function Info
 		fn_current_arg	[]string
 		fn_args_count	int
@@ -36,7 +39,7 @@ pub struct WFX {
 		datatypes		[]string 		  = ['int', 'string']
 
 						// FUNCTION_NAME, FUNCTION_MAX_ARG(1==0)		// ANSI Functions
-		functions		map[string]int = {'sleep':				1,
+		functions		map[string]int = {'sleep':				2,
 											 'clear':				0,
 											 'hide_cursor': 		0,
 											 'show_cursor': 		0,
@@ -45,10 +48,10 @@ pub struct WFX {
 											 'slow_place_text': 	5,
 											 'list_text': 			3,
 											 'slow_list_text':		3,
-											 'set_term_size': 		1,
+											 'set_term_size': 		2,
 											 'change_term_title':	1,
 											 'move_cursor':			1,
-											 'include_whfx':		1,
+											 'include_whfx':		1, // inside parse_wfx() ( not handler_fn() )
 											 'output_wrfx':			1,
 											 // Returning Functions
 											 'get_args': 			0,
@@ -168,6 +171,16 @@ pub fn (mut wx WFX) disable_socket_mode() {
 	wx.socket_toggle = false
 }
 
+pub fn (mut wx WFX) check_n_return_arg(c string) string {
+	if c.int() != 0 {
+		if wx.cmd_args.len < c.int() {
+			println("[x] Error, There is no ${c} argument for last command!")
+			return ""
+		}
+	}
+	return wx.cmd_args[c.int()]
+}
+
 pub fn (mut wx WFX) set_current_info() {
 
 }
@@ -186,28 +199,43 @@ pub fn (mut wx WFX) get_var_info(var_name string) (string, string, string) {
 }
 
 // Not Done!
-pub fn (mut wx WFX) check_for_max_arg() (int, string) {
-	mut updated_code := []string // New file's code removing the 2 argument functions from content
+pub fn (mut wx WFX) check_for_max_arg (int, string) {
+	// New file's code removing the 2 argument functions from content
+	mut new_code := []string
 
-	// For loop check points
+	// Info from file
 	mut max_arg := 0
-	mut max_arg_err := ""
 
-	// Check points for the loop
-	mut set_max := false
-	mut set_err_msg := false
-
-	for i, line in wx.file_lines {
-		if line.starts_with("set_max_arg") {
-			// validate function here
-			println(line)
-			if wx.file_lines[i+1].starts_with("set_arg_err_msg") {
-				// validate function here
-				println(line)
+	for i, line in wx.file_data {
+		if line != "" {
+			if line.starts_with(wockyfx.wfx_fns[16]) {
+				return 1, get_str_between(line, "(", ")").int()
 			}
 		}
 	}
-	return 0, ""
+	if set_max == true {
+		println("[x] Error, Must use set_arg_err_msg(\"\"); in order to use set_max_arg(c);!")
+		return max_arg
+	}
+
+	return max_arg, ""
+}
+
+pub fn (mut wx WFX) parse_callback(function string) {
+	exit_code, new_code := wockyfx.get_callback_code()
+	mut new_filecode := ""
+	for i, line_code in new_code {
+		new_filecode += "${line_code}\n"
+	}
+
+	new_filename := utilities.create_random_str(10)
+	
+	filepath := "${config.wfx_path}${new_filename}.wfx"
+	os.write_file(filepath, new_filecode) or { panic("Failed") }
+
+	wx.set_file(filepath, FileTypes.wfx)
+	wx.parse_wfx()
+	os.execute("sudo rm -rf ${filepath}").output
 }
 
 pub fn (mut wx WFX) parse_wfx() {
@@ -217,11 +245,12 @@ pub fn (mut wx WFX) parse_wfx() {
 	}
 
 	// Check for cmd max_arguments 
-	exit_c, args := wx.check_for_max_arg()
+	exit_c, args := wx.parse_callback()
 
 	for i, line in wx.file_lines {
 		if line != "" && line.starts_with("//") == false {
 			if line.starts_with("var") {
+				println("here")
 				mut var_name := ""
 				mut var_type := ""
 				mut var_value := ""
@@ -250,11 +279,15 @@ pub fn (mut wx WFX) parse_wfx() {
 						var_value = split_line[3].replace(";", "")
 					}
 					"str" {
-						if wockyfx.char_count(line, "\"") != 2 {
-							println("[x] Error, Broken quoted string. Expecting a '\"'.")
-							exit(0)
-						}
-						var_value = wockyfx.get_str_between(line, "\"", "\"")
+						if wockyfx.char_count(line, "\"") == 2 {
+							var_value = wockyfx.get_str_between(line, "\"", "\"")
+						} else if line.contains("get_args()[") {
+							println("here")
+							arg_info := line.split("()")[1]
+							arg := wockyfx.get_str_between(arg_info, "[", "]")
+							println("${line} | ${arg}")
+							var_value = wx.check_n_return_arg(arg)
+						} 
 					}
 					"fnc" {
 						// parse this for the value
@@ -277,13 +310,14 @@ pub fn (mut wx WFX) parse_wfx() {
 				fn_found = false
 			}
 		}
+		wx.file_current_ln = i
 	}
 }
 
 pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
 	match fn_name {
 		"sleep" {
-			wx.wfx_u.wfx_sleep(fn_args[0].int())
+			wx.wfx_u.wfx_sleep(fn_args[0].int(), fn_args[1])
 		}
 		"clear" {
 			if wx.socket_toggle == true {
@@ -322,23 +356,51 @@ pub fn (mut wx WFX) handle_fn(fn_name string, fn_args []string) {
 		}
 		"place_text" {
 			if wx.socket_toggle == true {
-				wx.wfx_u.wfx_place_text_socket(fn_args[0], fn_args[1], wfx.replace_var_code(fn_args[2].replace("\"", ""), mut wx.socket))
+				wx.wfx_u.wfx_place_text_socket(fn_args[0], fn_args[1], wx.replace_var_code(fn_args[2].replace("\"", "")), mut wx.socket)
 			} else {
-				wx.wfx_u.wfx_place_text(fn_args[0], fn_args[1], wfx.replace_var_code(fn_args[2].replace("\"", "")))
+				wx.wfx_u.wfx_place_text(fn_args[0], fn_args[1], wx.replace_var_code(fn_args[2].replace("\"", "")))
 			}
 		}
 		"slow_place_text" {
 			if wx.socket_toggle == true {
 				
 			} else {
-				wx.wfx_u.wfx_slow_place_text(fn_args[0], fn_args[1], fn_args[2], fn_args[3], wfx.replace_var_code(fn_args[4].replace("\"", "")))
+				wx.wfx_u.wfx_slow_place_text(fn_args[0], fn_args[1], fn_args[2], fn_args[3], wx.replace_var_code(fn_args[4].replace("\"", "")))
 			}
 		}
 		"list_text" {
 			if wx.socket_toggle == true {
 
 			} else {
-				wx.wfx_u.wfx_list_text(fn_args[0], fn_args[1], wfx.replace_var_code(fn_args[2].replace("\"", "")))
+				wx.wfx_u.wfx_list_text(fn_args[0], fn_args[1], wx.replace_var_code(fn_args[2].replace("\"", "")))
+			}
+		}
+		"slow_list_text" {
+			if wx.socket_toggle == true {
+
+			} else {
+				wx.wfx_u.wfx_slow_list_text(fn_args[0], fn_args[1], fn_args[2], fn_args[3], wx.replace_var_code(fn_args[4].replace("\"", "")))
+			}
+		}
+		"set_term_size" {
+			if wx.socket_toggle == true {
+
+			} else {
+				wx.wfx_u.wfx_set_term_size(fn_args[0], fn_args[1])
+			}
+		}
+		"change_term_title" {
+			if wx.socket_toggle == true {
+
+			} else {
+				wx.wfx_u.wfx_change_term_title(fn_args[0].replace("\"", ""))
+			}
+		} 
+		"move_cursor" {
+			if wx.socket_toggle == true {
+
+			} else {
+				wx.wfx_u.wfx_move_cursor(fn_args[0], fn_args[1])
 			}
 		} else {}
 	}
@@ -392,8 +454,6 @@ pub fn (mut wx WFX) parse_whfx(line_number int) {
 		}
 	}
 
-	println(new_wfx_code)
-
 	// run wfx parser now 
 	old_file := wx.file
 	old_code := wx.file_lines
@@ -412,14 +472,14 @@ pub fn (mut wx WFX) get_fnc_arg(line string, fn_n string) int {
 	mut args_count := args.len
 	
 	if args_count == 1 && args[0] == "" { 
-		args_count--
+		return 1
 	}
-
+	
 	if args_count < wx.functions[fn_n] {
-		println("[x] Error, Missing function arguments")
+		println("[x] Error, Missing function arguments | Line ${wx.file_current_ln}")
 		exit(0)
 	} else if args_count > wx.functions[fn_n] {
-		println("Here: [x] Error, Supplied to much function arguments")
+		println(": [x] Error, Supplied to much function arguments | Line ${wx.file_current_ln}")
 		exit(0)
 	}
 
@@ -489,7 +549,7 @@ pub fn (mut wx WFX) replace_var_code(line string) string {
 		}
 	}
 	t = t.replace("{ONLINEUSERS}", wx.online_users)
-	if wx.user_info != 0 {
+	if wx.user_info.len != 0 {
 		t = t.replace("{USERID}", wx.user_info['USERID'])
 		t = t.replace("{USERNAME}", wx.user_info['username'])
 		t = t.replace("{USERIP}", wx.user_info['ip'])

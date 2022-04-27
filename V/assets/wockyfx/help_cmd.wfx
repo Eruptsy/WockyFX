@@ -1,14 +1,19 @@
 perm free
 
 var[str] my_var = "testing this variable";
+var[str] command = get_args()[1];
+
 hide_cursor();
 clear();
+change_term_title("Skrillec NET");
+set_term_size(30,87);
 output_wrfx("assets/wockyfx/wrfx/ui.wrfx");
-sleep(2);
+sleep(500,millisecond);
+place_text(18,6,);
 slow_place_text(15,6,250,millisecond,"test....");
 print_text("{my_var}");
 include_whfx("assets/wockyfx/whfx/clear_box.whfx").clear();
-place_text(20,6,"testing back to wfx file data again");
-sleep(2);
+place_text(20,6,"testing back to wfx file data again {command}");
+sleep(500,millisecond);
 show_cursor();
-sleep(10);
+sleep(10,second);
