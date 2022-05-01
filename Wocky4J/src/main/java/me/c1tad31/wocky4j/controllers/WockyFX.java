@@ -5,7 +5,7 @@ import me.c1tad31.wocky4j.enums.FileTypes;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,7 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class WockyFX {
-    private ServerSocket socket;
+
+    private Socket wxSocket;
     private boolean socketToggle = false;
     private String file;
     private String fileData;
@@ -31,6 +32,7 @@ public class WockyFX {
     private Map<String, String> userInfo = new HashMap<>();
 
     private Utils utils = new Utils();
+    private WfxFns wfxFns;
 
     private final Map<String, Integer> perms = new HashMap<>() {{
         put("free", 0);
@@ -101,9 +103,10 @@ public class WockyFX {
     }};
     private final String[] dataTypes = {"int", "string"};
 
-    public void enableSocket(ServerSocket s) {
-        socketToggle = true;
-        s = socket;
+    public WockyFX startSession() {
+        Utils utils = new Utils();
+        WockyFX wfx = new WockyFX();
+        return wfx;
     }
 
     public void setFile(String filePath, FileTypes fileTypes1) throws IOException {
@@ -124,15 +127,36 @@ public class WockyFX {
         fileLines = data.split("\n");
     }
 
-    public void setCmdInfo(String fcmd, String cmd, String[] args) {
+    public void setNewWfxCode(String[] code) {
+        fileLines = code;
+    }
+
+    public void setBuffer(String fcmd, String cmd, String[] args) {
         filefcmd = fcmd;
         filecmd = cmd;
         cmdArgs = args;
 
     }
 
+    public void enableSocketMode(Socket socket) {
+        socketToggle = true;
+        wxSocket = socket;
+    }
+
     public void setCurrentInfo() {
 
+    }
+
+    public void addVariable(String varName, String varType, String varValue) {
+        
+    }
+
+    public void appendVariable(String varName, String varValue) {
+
+    }
+
+    public String getVarVariable(String varName) {
+        return varName;
     }
 
     public void parseWfx() {
@@ -173,6 +197,37 @@ public class WockyFX {
 
     }
 
+    public void handleFn(String fnName, String[] args) {
+        switch (fnName) {
+            case "sleep":
+                wfxFns.wfxSleep(Integer.parseInt(args[0]));
+            case "clear":
+                if (socketToggle == true) {
+
+                }
+            case "output_wrfx":
+                if (socketToggle == true) {
+
+                } else {
+                    
+                }
+            case "hide_cursor":
+                wfxFns.wfxSleep(Integer.parseInt(args[0]));
+            case "show_cursor":
+                wfxFns.wfxSleep(Integer.parseInt(args[0]));
+            case "print_text":
+                wfxFns.wfxSleep(Integer.parseInt(args[0]));
+            case "place_text":
+                wfxFns.wfxSleep(Integer.parseInt(args[0]));
+            case "slow_place_text":
+                wfxFns.wfxSleep(Integer.parseInt(args[0]));
+            case "list_text":
+                wfxFns.wfxSleep(Integer.parseInt(args[0]));
+            default:
+                System.out.println("[x] Error, Please contact an admin to correct this");
+        }
+    }
+
     /**
      * @author Citadel
      * @param line tells the library what permission to set the file to
@@ -197,7 +252,6 @@ public class WockyFX {
                     System.exit(0);
             }
         }
-        System.out.println(String.format("your file is set to \"%s\" permission", fileRanks));
     }
 
     /**
