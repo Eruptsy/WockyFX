@@ -107,10 +107,19 @@ class WFX():
 
     def __init__(self, file: str):
         self.__filepath = file
+        if os.path.exists(file) != True:
+            print("[x] Error, Unable to read or locate file!")
+            exit(0)
+            
 
     def parse() -> None:
         pass
 
-class WFX_Functions:
-    def sleep(c: int, duration_type: bool) -> None:
-        pass
+class WFX_Core:
+    def sleep(c: int) -> None:
+        time.sleep(c)
+    
+    def clear() -> None:
+        print("")
+
+    def hide_cursor() -> None:
