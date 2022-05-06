@@ -1,0 +1,8 @@
+perm free
+
+clear();
+output_wrfx("ui");
+print_text("{Default}");
+hide_cursor();
+list_text(11,4,"{Default}Methods:{NEWLINE}UDP{NEWLINE}TCP{NEWLINE}STD{NEWLINE}LDAP{NEWLINE}YOURMOM{NEWLINE}BYPASS_DEZNUTZ");
+show_cursor();

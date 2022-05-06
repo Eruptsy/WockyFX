@@ -101,7 +101,7 @@ public class WockyFX {
         put("White_BG", "\\x1b[107m");
         put("Clear", "\\033[2J\\033[1;1H");
     }};
-    private final String[] dataTypes = {"int", "string"};
+    private final String[] dataTypes = {"str", "integer", "fnc"};
 
     public WockyFX startSession() {
         Utils utils = new Utils();
@@ -143,6 +143,15 @@ public class WockyFX {
         wxSocket = socket;
     }
 
+    public void disableSocketMode() {
+        socketToggle = false;
+    }
+
+    public String checkNReturnArg(String c) {
+        return c;
+
+    }
+
     public void setCurrentInfo() {
 
     }
@@ -154,6 +163,8 @@ public class WockyFX {
     public void appendVariable(String varName, String varValue) {
 
     }
+
+    // get var info
 
     public String getVarVariable(String varName) {
         return varName;
@@ -230,7 +241,7 @@ public class WockyFX {
 
     /**
      * @author Citadel
-     * @param line tells the library what permission to set the file to
+     * @param permission tells the library what permission to set the file to
      */
 
     public void parsePerms(String permission) {
@@ -256,7 +267,7 @@ public class WockyFX {
 
     /**
      * @author Citadel
-     * @param set the pers
+     * @param function the pers
      */
 
     public int parseFn(String function) {

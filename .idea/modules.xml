@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Wocky4J/Wocky4J.iml" filepath="$PROJECT_DIR$/Wocky4J/Wocky4J.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/WockyFX.iml" filepath="$PROJECT_DIR$/.idea/WockyFX.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wockyjs/wockyjs.iml" filepath="$PROJECT_DIR$/wockyjs/wockyjs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wockyphp/wockyphp.iml" filepath="$PROJECT_DIR$/wockyphp/wockyphp.iml" />
     </modules>
   </component>
 </project>
