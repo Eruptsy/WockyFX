@@ -8,6 +8,12 @@ class FileTypes(enum.Enum):
     whfx = 1
     wrfx = 2
 
+class Perms(enum.Enum):
+    free = 0
+    premium = 1
+    reseller = 2
+    admin = 3
+    owner = 4
 
 class WFX():
     __socket_toggle = False
@@ -34,34 +40,40 @@ class WFX():
         "owner": 4
     }
 
-    datatyes = ['int, string']
+    datatyes = ['int, string', 'fnc']
 
+    """
+        FUNCTION NAME: [FUNCTION_TYPE, FUNCTION_ARGUMENT]
+    """
     functions = {
-        'sleep': 2,
-        'clear': 0,
-        'hide_cursor': 0,
-        'show_cursor': 0,
-        'print_text': 1,
-        'place_text': 3,
-        'slow_place_text': 5,
-        'list_text': 3,
-        'slow_list_text': 3,
-        'set_term_size': 2,
-        'change_term_title': 1,
-        'move_cursor': 1,
-        'include_whfx': 1,  ## inside parse_wfx() ( not handler_fn() )
-        'output_wrfx': 1,
+        'sleep': ['void', 2],
+        'clear': ['void', 0],
+        'hide_cursor': ['void', 0],
+        'show_cursor': ['void', 0],
+        'print_text': ['void', 1],
+        'place_text': ['void', 3],
+        'slow_place_text': ['void', 5],
+        'list_text': ['void', 3],
+        'slow_list_text': ['void', 3],
+        'set_term_size': ['void', 2],
+        'change_term_title': ['void', 1],
+        'move_cursor': ['void', 1],
+        'include_whfx': ['void', 1],  ## inside parse_wfx() ( not handler_fn() )
+        'output_wrfx': ['void', 1],
         ## Returning Functions
-        'get_args': 0,
+        'get_args': ['str', 0],
         ## Special Functions
-        'geo_ip': 1,
-        'port_scan': 1,
-        'send_attack': 3,
+        'geo_ip': ['str', 1],
+        'port_scan': ['str', 1],
+        'send_attack': ['void', 3], ## Might change to returning string
         ## Error Handlers
-        'set_max_arg': 1,
-        'set_arg_err_msg': -1  ## Do not detect the amount of argument for this function
+        'set_max_arg': ['void', 1],
+        'set_arg_err_msg': ['void' -1]  ## Do not detect the amount of argument for this function
     }
 
+    """
+        VARIABLE_NAME: [VARIABLE_VALUE, VARIABLE_TYPE]
+    """
     variables = {
         'Default': ['\x1b[39m', 'str'],
         'Black': ['\x1b[30m', 'str'],
@@ -108,21 +120,58 @@ class WFX():
     __online_users = ""
 
     def __init__(self, file: str):
-        self.__filepath = file
+        self.__file = file
         if os.path.exists(file) != True:
             print("[x] Error, Unable to read or locate file!")
             exit(0)
 
+        try:
+            self.__file_data = open(self.__file, "r").read()
+        except:
+            print("[x] Error, Unable to read file!")
+            exit(0)
+
+        if self.__file_data == "" | len(self.__file_data) == 0: 
+            print("[x] Error, No file data to parse!")
+            exit(0)
+
+        self.__file_lines = self.__file_data.split("\n")
+
+        if "_cmd.wfx" in self.__file | self.__file.endswith(".wfx"):
+            self.__file_type = FileTypes.wfx
+        elif self.__file.endswith(".whfx"):
+            self.__file_type = FileTypes.whfx
+        elif self.__file.endswith(".wrfx"):
+            self.__file_type = FileTypes.wrfx
+    
+    def set_buffer(self, fcmd: str, cmd: str, args: str) -> None:
+        self.__fcmd = fcmd
+        self.__cmd = cmd
+        self.__cmd_args = args
+
     def parse(self) -> None:
-        pass
+        if self.__file_lines[0].startswith("perm"):
+            self.parse_perm(self.__file_lines[0])
+        
+        for i, line in self.__file_lines:
+            if line != "" and line.startswith("//") == False:
+                if line.startswith("var"):
+                    ## Variable found
+                elif line.startswith("include_whfx"):
 
+                elif line.contains("(fnc() => {"):
 
-class WFX_Core:
-    def sleep(self, c: int) -> None:
-        time.sleep(c)
+            self.__file_current_ln = i
 
-    def clear(self) -> None:
-        print("")
-
-    def hide_cursor(self) -> None:
-        pass
+    def parse_perm(self, line: str) -> None:
+        """ 
+            This can be optimized later using a match statement with Python3.10
+        """
+        if line.endswith("free;"):
+            self.__file_rank = Perms.free
+        elif line.endswith("premium;"):
+            self.__file_rank = Perms.premium
+        elif line.endswith("reseller;"):
+            self.__file_rank = Perms.reseller
+        elif line.endswith("admin"):
+            self.__file_rank = Perms.admin
