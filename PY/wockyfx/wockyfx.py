@@ -157,10 +157,11 @@ class WFX():
             if line != "" and line.startswith("//") == False:
                 if line.startswith("var"):
                     ## Variable found
+                    pass
                 elif line.startswith("include_whfx"):
-
+                    pass
                 elif line.contains("(fnc() => {"):
-
+                    pass
             self.__file_current_ln = i
 
     def parse_perm(self, line: str) -> None:
