@@ -1,5 +1,5 @@
-import cmd
-from math import perm
+from pydoc import _OldStyleClass
+from .utils import *
 import os, sys, time, enum
 
 
@@ -68,7 +68,7 @@ class WFX():
         'send_attack': ['void', 3], ## Might change to returning string
         ## Error Handlers
         'set_max_arg': ['void', 1],
-        'set_arg_err_msg': ['void' -1]  ## Do not detect the amount of argument for this function
+        'set_arg_err_msg': ['void', -1]  ## Do not detect the amount of argument for this function
     }
 
     """
@@ -143,6 +143,12 @@ class WFX():
             self.__file_type = FileTypes.whfx
         elif self.__file.endswith(".wrfx"):
             self.__file_type = FileTypes.wrfx
+
+    def add_variable(self, var_name: str, var_type: str, var_value: str):
+        new_data = {
+            var_name: [var_value, var_type]
+        }
+        self.variables.append(new_data)
     
     def set_buffer(self, fcmd: str, cmd: str, args: str) -> None:
         self.__fcmd = fcmd
@@ -156,13 +162,96 @@ class WFX():
         for i, line in self.__file_lines:
             if line != "" and line.startswith("//") == False:
                 if line.startswith("var"):
-                    ## Variable found
-                    pass
+                    var_name = ""
+                    var_type = ""
+                    var_value = ""
+                    split_line = line.split(" ")
+                    if line.contains(";") == False:
+                        print("[x] Error, Expected ';' semi-colon at the end of the line")
+                        exit(0)
+                    
+                    if line.replace("var", "").startswith("["):
+                        if split_line[0].endswith("]"):
+                            var_type = split_line[0].replace("var[", "]").replace("]", "")
+                            if var_type != "str" and var_type != "int":
+                                print("[x] Error, Invalid datatype. str and int or fnc....")
+                        else:
+                            print("[x] Error, Expecting 'var[data_type]' datatype index for 'var' key")
+                            exit(0)
+                    
+                    var_name = split_line[1]
+                    if var_type == "int":
+                        var_value = split_line[3].replace(";")
+                    elif var_type == "str":
+                        if char_count(line, "\"") == 2:
+                            var_value = get_str_between(line, "\"", "\"")
+                            pass
+                    elif var_type == "fnc":
+                        """
+                            This has to be finished soon
+                        """
+                        ## grab function value
+                        pass
                 elif line.startswith("include_whfx"):
+                    ## self.parse_whfx(i)
                     pass
-                elif line.contains("(fnc() => {"):
-                    pass
+                elif line.contains("(fnc() => {") == False:
+                    fn_found = False
+                    for fn_n in self.functions:
+                        fn_type = self.functions[fn_n][0]
+                        fn_arg = self.functions[fn_n][1]
+                        if line.startswith(fn_n):
+                            self.get_fnc_arg(line, fn_n)
+                            self.handle_fn(fn_n, self.__fn_current_arg)
+
+                            fn_found = True
+                    fn_found = False
             self.__file_current_ln = i
+        
+    def handle_fn(self, fn_n: str, fn_args: list):
+        if fn_n == "sleep":
+            pass
+        elif fn_n == "clear":
+            pass
+        elif fn_n == "output_wrfx":
+            pass
+        elif fn_n == "hide_cursor":
+            pass
+        elif fn_n == "show_cursor":
+            pass
+        elif fn_n == "print_text":
+            pass
+        elif fn_n == "place_text":
+            pass
+        elif fn_n == "show_place_text":
+            pass
+        elif fn_n == "list_text":
+            pass
+        elif fn_n == "set_term_size":
+            pass
+        elif fn_n == "change_term_title":
+            pass
+        elif fn_n == "move_cursor":
+            pass
+
+    def get_fnc_arg(self, line: str, fn_n: str) -> int:
+        if line.endswith("();"): return 1
+        args = get_str_between(line, "(", ")").split(",")
+        args_count = len(args)
+
+        if args_count == 1 and args[0] == "":
+            return 1
+
+        if args_count < self.functions[fn_n][1]:
+            print("[x] Error, Missing function arguments | File: {}, Line: {}".format(self.__file, self.__file_current_ln))
+            exit(0)
+        elif args_count > self.functions[fn_n][1]:
+            print("[x] Error, Supplied to much function arguments | File: {}, Line: {}".format(self.__file, self.__file_current_ln))
+            exit(0)
+
+        self.__fn_current_arg = args
+        self.__fn_args_count = args_count
+        return 0
 
     def parse_perm(self, line: str) -> None:
         """ 
