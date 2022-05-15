@@ -201,6 +201,7 @@ class WFX():
                         """
                         ## grab function value
                         pass
+                    self.add_variable(var_name, var_type, var_value)
                 elif line.startswith("include_whfx"):
                     ## self.parse_whfx(i)
                     pass
