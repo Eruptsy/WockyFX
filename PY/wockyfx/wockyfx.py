@@ -1,9 +1,14 @@
+from argparse import FileType
 from pydoc import _OldStyleClass
+from uuid import _FieldsType
+
+from charset_normalizer import detect
 from .utils import *
 import os, sys, time, enum
 
 
 class FileTypes(enum.Enum):
+    none = -1
     wfx = 0
     whfx = 1
     wrfx = 2
@@ -136,15 +141,19 @@ class WFX():
             exit(0)
 
         self.__file_lines = self.__file_data.split("\n")
+        self.__file_type = self.detect_filetype()
 
-        if "_cmd.wfx" in self.__file | self.__file.endswith(".wfx"):
-            self.__file_type = FileTypes.wfx
+    def detect_filetype(self) -> FileTypes:
+        if self.__file.endswith(".wfx"):
+            return FileTypes.wfx
         elif self.__file.endswith(".whfx"):
-            self.__file_type = FileTypes.whfx
+            return FileTypes.whfx
         elif self.__file.endswith(".wrfx"):
-            self.__file_type = FileTypes.wrfx
+            return FileTypes.wrfx
+        return FileTypes.none
 
-    def add_variable(self, var_name: str, var_type: str, var_value: str):
+
+    def add_variable(self, var_name: str, var_type: str, var_value: str) -> None:
         new_data = {
             var_name: [var_value, var_type]
         }
